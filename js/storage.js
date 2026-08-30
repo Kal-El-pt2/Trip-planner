@@ -1,7 +1,7 @@
 window.App = window.App || {};
 
 App.Storage = (function () {
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = '/api';
 
   async function loadPins(mapId) {
     const response = await fetch(`${API_URL}/pins/${mapId}`);
