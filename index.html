@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Japan Trip Planner</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <h1>Japan Trip Planner 日本旅行</h1>
+      <div class="sub">TAP THE MAP TO STAMP A STOP</div>
+    </div>
+    <div class="count" id="count-badge">0 stops</div>
+  </header>
+  <main>
+    <div id="sidebar">
+      <div id="search-wrap">
+        <input type="text" id="search-input" placeholder="Search for a city or place..." autocomplete="off" />
+        <div id="search-results"></div>
+      </div>
+      <div id="tabs">
+        <div class="tab active" data-cat="all">ALL</div>
+        <div class="tab" data-cat="food">食 FOOD</div>
+        <div class="tab" data-cat="sights">見 SIGHTS</div>
+        <div class="tab" data-cat="hotel">宿 STAY</div>
+      </div>
+      
+      <!-- List of pins -->
+      <div id="pin-list"></div>
+
+      <!-- NEW: Contribution stats to see who is winning -->
+      <div id="stats-panel">
+        <div class="stats-header">CONTRIBUTIONS</div>
+        <div id="stats-content">Loading stats...</div>
+      </div>
+    </div>
+    <div id="map"></div>
+  </main>
+</div>
+
+<div id="overlay">
+  <div id="add-panel">
+    <h2 id="panel-title">New stop</h2>
+    <div class="coords" id="panel-coords"></div>
+    <label>Name</label>
+    <input type="text" id="name-input" placeholder="e.g. Fushimi Inari Shrine" />
+    <label>Category</label>
+    <div id="cat-choice">
+      <div class="cat-btn" data-cat="food"><div class="stamp-dot cat-food">食</div>Food</div>
+      <div class="cat-btn" data-cat="sights"><div class="stamp-dot cat-sights">見</div>Sights</div>
+      <div class="cat-btn" data-cat="hotel"><div class="stamp-dot cat-hotel">宿</div>Stay</div>
+    </div>
+    <label>Notes</label>
+    <textarea id="notes-input" placeholder="Opening hours, reservation link, why you want to go..."></textarea>
+    <div id="panel-actions">
+      <button id="cancel-btn">Cancel</button>
+      <button id="save-btn">Stamp it</button>
+    </div>
+  </div>
+</div>
+
+<div id="status"></div>
+
+<!-- Scripts remain in the same order -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/state.js"></script>
+<script src="js/mapview.js"></script>
+<script src="js/search.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
