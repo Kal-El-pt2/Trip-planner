@@ -1,15 +1,17 @@
 require('dotenv').config();
+const fs = require('fs');
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') }); 
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, '../')));
 console.log("Checking DB User:", process.env.DB_USER);
+
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -38,18 +40,16 @@ app.get('/api/pins/:mapId', async (req, res) => {
     const [rows] = await db.query('SELECT * FROM pins WHERE map_id = ?', [req.params.mapId]);
     console.log(`[GET] Success: Found ${rows.length} pins`);
     res.json(rows);
-  } catch (err) { 
+  } catch (err) {
     console.error(`[GET] Error:`, err.message);
-    res.status(500).json({ error: err.message }); 
+    res.status(500).json({ error: err.message });
   }
 });
-
-// backend/server.js
 
 app.post('/api/pins', async (req, res) => {
   const { id, map_id, lat, lng, name, category, notes, user_id, user_name } = req.body;
   console.log(`[STAMP] ${user_name} added: ${name}`);
-  
+
   try {
     const sql = `INSERT INTO pins (id, map_id, lat, lng, name, category, notes, user_id, user_name)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -67,9 +67,9 @@ app.delete('/api/pins/:id', async (req, res) => {
     const [result] = await db.query('DELETE FROM pins WHERE id = ?', [req.params.id]);
     console.log(`[DELETE] Success: Pin removed`);
     res.json({ success: true });
-  } catch (err) { 
+  } catch (err) {
     console.error(`[DELETE] Error:`, err.message);
-    res.status(500).json({ error: err.message }); 
+    res.status(500).json({ error: err.message });
   }
 });
 
