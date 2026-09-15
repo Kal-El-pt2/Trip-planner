@@ -8,6 +8,7 @@ App.MapView = (function () {
 
   let map = null;
   let markers = {};
+  let userLocationMarker = null; // kept separate from pin markers so renderMarkers() doesn't wipe it
 
   function init(center, zoom, onMapClick) {
     map = L.map('map', { zoomControl: true }).setView(center, zoom);
@@ -91,5 +92,47 @@ function openPopup(id) {
     marker.setZIndexOffset(active ? 1000 : 0);
   }
 
-  return { CAT_LABELS, init, renderMarkers, flyTo, highlightMarker, openPopup };
+  // Locate the user via browser Geolocation API, fly the map to them,
+  // and drop a "you are here" marker. Calls back with (lat, lng) on
+  // success, or (null, error) on failure, so callers can react either way.
+  function locateUser({ zoom = 13, onSuccess, onError } = {}) {
+    if (!navigator.geolocation) {
+      if (onError) onError(new Error('Geolocation is not supported by this browser.'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        flyTo(latitude, longitude, zoom);
+
+        if (userLocationMarker) {
+          map.removeLayer(userLocationMarker);
+        }
+
+        userLocationMarker = L.circleMarker([latitude, longitude], {
+          radius: 8,
+          color: '#4a90e2',
+          fillColor: '#4a90e2',
+          fillOpacity: 0.7,
+          weight: 2,
+        })
+          .addTo(map)
+          .bindPopup('You are here');
+
+        if (onSuccess) onSuccess(latitude, longitude);
+      },
+      (error) => {
+        if (onError) onError(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 60000,
+      }
+    );
+  }
+
+  return { CAT_LABELS, init, renderMarkers, flyTo, highlightMarker, openPopup, locateUser };
 })();

@@ -96,12 +96,26 @@
     });
   }
 
+  function locateUser() {
+    MapView.locateUser({
+      zoom: 13,
+      onSuccess: () => {
+        UI.showStatus('Located you 📍');
+      },
+      onError: (err) => {
+        console.warn('[App] Geolocation failed:', err.message);
+        UI.showStatus('Location unavailable - showing default view');
+      },
+    });
+  }
+
   async function init() {
     State.initializeUser();
     console.log(`[App] Initializing... User ID: ${State.getUserId()}`);
     const currentMap = State.getCurrentMap();
     
     MapView.init(currentMap.center, currentMap.zoom, handleMapClick);
+    locateUser();
 
     UI.showStatus('Loading stops...');
     try {
