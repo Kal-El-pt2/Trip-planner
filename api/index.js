@@ -1,7 +1,6 @@
 require('dotenv').config();
-const fs = require('fs');
 const express = require('express');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -12,32 +11,25 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../')));
 console.log("Checking DB User:", process.env.DB_USER);
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
   ssl: {
-    ca: fs.readFileSync(path.join(__dirname, 'ca.pem')),
+    rejectUnauthorized: true,
   },
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-}).promise();
+});
 
 // Test connection on startup
 db.query('SELECT 1').then(() => {
-  console.log('✅ Connected to MySQL database');
+  console.log('✅ Connected to Postgres database');
 }).catch(err => {
-  console.error('❌ CRITICAL: Could not connect to MySQL. Check your .env file!', err.message);
+  console.error('❌ CRITICAL: Could not connect to Postgres. Check your .env file!', err.message);
 });
 
 // API ROUTES
 app.get('/api/pins/:mapId', async (req, res) => {
   console.log(`[GET] Fetching pins for map: ${req.params.mapId}`);
   try {
-    const [rows] = await db.query('SELECT * FROM pins WHERE map_id = ?', [req.params.mapId]);
+    const { rows } = await db.query('SELECT * FROM pins WHERE map_id = $1', [req.params.mapId]);
     console.log(`[GET] Success: Found ${rows.length} pins`);
     res.json(rows);
   } catch (err) {
@@ -52,7 +44,7 @@ app.post('/api/pins', async (req, res) => {
 
   try {
     const sql = `INSERT INTO pins (id, map_id, lat, lng, name, category, notes, user_id, user_name)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
     await db.query(sql, [id, map_id, lat, lng, name, category, notes, user_id, user_name]);
     res.json({ success: true });
   } catch (err) {
@@ -64,7 +56,7 @@ app.post('/api/pins', async (req, res) => {
 app.delete('/api/pins/:id', async (req, res) => {
   console.log(`[DELETE] Request to remove pin ID: ${req.params.id}`);
   try {
-    const [result] = await db.query('DELETE FROM pins WHERE id = ?', [req.params.id]);
+    await db.query('DELETE FROM pins WHERE id = $1', [req.params.id]);
     console.log(`[DELETE] Success: Pin removed`);
     res.json({ success: true });
   } catch (err) {
