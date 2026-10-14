@@ -29,6 +29,26 @@
     names.forEach((n) => make(`${n} (${groups[n].length})`, n));
   }
 
+  // Local date as YYYY-MM-DD, built from parts so it doesn't depend on locale formatting
+  function todayStr() {
+    const n = new Date();
+    const p = (x) => String(x).padStart(2, '0');
+    return `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())}`;
+  }
+
+  // 0 = upcoming (or today), 1 = past, 2 = no date
+  function dateRank(pin, today) {
+    if (!pin.date) return 2;
+    return pin.date >= today ? 0 : 1;
+  }
+
+  function comparePins(a, b, today) {
+    const ra = dateRank(a, today), rb = dateRank(b, today);
+    if (ra !== rb) return ra - rb;
+    if (ra === 0) return a.date.localeCompare(b.date); // soonest first
+    if (ra === 1) return b.date.localeCompare(a.date); // most recent past first
+    return 0;                                          // undated: keep original order
+  }
 
   function refresh() {
     const allPins = State.getPins();
@@ -40,18 +60,19 @@
         Country.getCountry(a).localeCompare(Country.getCountry(b)) ||
         comparePins(a, b, today)
       );
-    
-    UI.updateCount(allPins); 
-    
+
+    UI.updateCount(allPins);
+
     UI.renderPinList(filteredPins, {
       onSelect: (id) => {
         const pin = State.findPin(id);
         MapView.flyTo(pin.lat, pin.lng, 15);
         // Automatically open the popup when selected from sidebar
-        MapView.openPopup(id); 
+        MapView.openPopup(id);
       },
       onDelete: handlePinDelete,
       onHover: (id, active) => MapView.highlightMarker(id, active),
+      onDateChange: handleDateChange,
     });
 
     MapView.renderMarkers(filteredPins, {
@@ -83,7 +104,26 @@
     }
   }
 
-  async function handleSave({ name, notes }) {
+  async function handleDateChange(id, date) {
+    const pin = State.findPin(id);
+    if (!pin) return;
+    const prev = pin.date;
+    pin.date = date;
+    refresh();
+
+    UI.showStatus('Updating date...');
+    try {
+      await Storage.updatePinDate(id, date);
+      UI.showStatus('Date updated ✓');
+    } catch (err) {
+      console.error('[App] Date update failed:', err);
+      pin.date = prev;
+      refresh();
+      UI.showStatus('Could not update date');
+    }
+  }
+
+  async function handleSave({ name, notes, date }) {
     if (!name) return UI.showStatus('Give this stop a name');
     if (!selectedCategory) return UI.showStatus('Pick a category');
 
@@ -94,14 +134,15 @@
       name,
       category: selectedCategory,
       notes,
+      date,
       user_id: State.getUserId(),
-      user_name: State.getUserName() // Add the name here
+      user_name: State.getUserName()
     };
 
     State.addPin(newPin);
     refresh();
     UI.closeAddPanel();
-    
+
     UI.showStatus('Saving...');
     try {
       await Storage.savePin(State.currentMapId(), newPin);
@@ -141,29 +182,11 @@
     });
   }
 
-  function todayStr() {
-    return new Date().toLocaleDateString('en-CA'); // local date as YYYY-MM-DD
-  }
-
-  // 0 = upcoming (or today), 1 = past, 2 = no date
-  function dateRank(pin, today) {
-    if (!pin.date) return 2;
-    return pin.date >= today ? 0 : 1;
-  }
-
-  function comparePins(a, b, today) {
-    const ra = dateRank(a, today), rb = dateRank(b, today);
-    if (ra !== rb) return ra - rb;
-    if (ra === 0) return a.date.localeCompare(b.date); // soonest first
-    if (ra === 1) return b.date.localeCompare(a.date); // most recent past first
-    return 0;                                          // undated: keep original order
-  }
-
   async function init() {
     State.initializeUser();
     console.log(`[App] Initializing... User ID: ${State.getUserId()}`);
     const currentMap = State.getCurrentMap();
-    
+
     MapView.init(currentMap.center, currentMap.zoom, handleMapClick);
     locateUser();
 
@@ -176,7 +199,7 @@
       console.error(`[App] Could not load pins:`, err);
       State.setPins([]);
     }
-    
+
     try {
       await Country.load();
     } catch (err) {

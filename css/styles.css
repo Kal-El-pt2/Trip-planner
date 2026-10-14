@@ -127,7 +127,14 @@ main { flex: 1; display: flex; min-height: 0; }
   font-family: 'Shippori Mincho', serif;
 }
 .pin-date { font-size: 12px; opacity: .75; margin-top: 2px; }
-
+.date-editor {
+  display: none; align-items: center; gap: 8px;
+  margin-top: 8px; padding-top: 8px; border-top: 1px dashed currentColor;
+}
+.ticket.editing .date-editor { display: flex; }
+.date-editor label { font-size: 11px; letter-spacing: .08em; opacity: .7; }
+.date-editor input { font: inherit; font-size: 12px; padding: 3px 6px; }
+.pin-date-clear { background: none; border: none; cursor: pointer; font: inherit; font-size: 12px; text-decoration: underline; opacity: .75; }
 /* Updated Ticket Styles */
 .ticket {
   background: #fff;

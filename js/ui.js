@@ -18,6 +18,7 @@ App.UI = (function () {
     status: document.getElementById('status'),
     searchInput: document.getElementById('search-input'),
     searchResults: document.getElementById('search-results'),
+    dateInput: document.getElementById('date-input')
   };
 
   function escapeHtml(str) {
@@ -59,7 +60,9 @@ App.UI = (function () {
     }
   }
 
-  function renderPinList(pins, { onSelect, onDelete, onHover }) {
+  let editingId = null;
+  
+  function renderPinList(pins, { onSelect, onDelete, onHover, onDateChange }) {
     if (pins.length === 0) {
       el.pinList.innerHTML = `<div class="empty-state">No stops here yet.<br/>Tap the map to add your first one.</div>`;
       return;
@@ -68,7 +71,7 @@ App.UI = (function () {
     el.pinList.innerHTML = pins
       .map(
         (p) => `
-      <div class="ticket" data-ticket="${p.id}">
+        <div class="ticket${p.id === editingId ? ' editing' : ''}" data-ticket="${p.id}">
         <div class="ticket-top">
           <div class="stamp-dot cat-${p.category}">${App.MapView.CAT_LABELS[p.category]}</div>
           <div class="ticket-name">${escapeHtml(p.name)}</div>
@@ -77,6 +80,11 @@ App.UI = (function () {
         <div class="ticket-meta">Added by: ${escapeHtml(p.user_name)}</div>
         ${p.date ? `<div class="pin-date">📅 ${formatPinDate(p.date)}</div>` : ''}
         ${p.notes ? `<div class="ticket-notes">${escapeHtml(p.notes)}</div>` : ''}
+        <div class="date-editor">
+          <label>Date</label>
+          <input type="date" class="pin-date-input" data-id="${p.id}" value="${p.date || ''}" />
+          ${p.date ? `<button type="button" class="pin-date-clear" data-id="${p.id}">Clear</button>` : ''}
+        </div>
       </div>
     `
       )
@@ -84,18 +92,24 @@ App.UI = (function () {
 
     el.pinList.querySelectorAll('.ticket').forEach((ticketEl) => {
       ticketEl.addEventListener('click', (e) => {
-        if (e.target.closest('.ticket-del')) return;
-        onSelect(ticketEl.dataset.ticket);
+        if (e.target.closest('.ticket-del, .date-editor')) return;
+        const id = ticketEl.dataset.ticket;
+        editingId = editingId === id ? null : id;           // click again to collapse
+        el.pinList.querySelectorAll('.ticket').forEach((t) =>
+          t.classList.toggle('editing', t.dataset.ticket === editingId)
+        );
+        onSelect(id);
       });
       ticketEl.addEventListener('mouseenter', () => onHover(ticketEl.dataset.ticket, true));
       ticketEl.addEventListener('mouseleave', () => onHover(ticketEl.dataset.ticket, false));
     });
 
-    el.pinList.querySelectorAll('.ticket-del').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        onDelete(btn.dataset.id);
-      });
+    el.pinList.querySelectorAll('.pin-date-input').forEach((input) => {
+      input.addEventListener('change', () => onDateChange(input.dataset.id, input.value || null));
+    });
+
+    el.pinList.querySelectorAll('.pin-date-clear').forEach((btn) => {
+      btn.addEventListener('click', () => onDateChange(btn.dataset.id, null));
     });
   }
 
@@ -117,6 +131,7 @@ App.UI = (function () {
     el.catBtns.forEach((b) => b.classList.remove('selected'));
     el.overlay.classList.add('open');
     el.nameInput.focus();
+    el.dateInput.value = '';
   }
 
   function closeAddPanel() {
@@ -145,6 +160,7 @@ App.UI = (function () {
       callback({
         name: el.nameInput.value.trim(),
         notes: el.notesInput.value.trim(),
+        date: el.dateInput.value || null,
       });
     });
   }
