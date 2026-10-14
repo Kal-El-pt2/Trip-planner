@@ -18,6 +18,7 @@ App.UI = (function () {
     status: document.getElementById('status'),
     searchInput: document.getElementById('search-input'),
     searchResults: document.getElementById('search-results'),
+    dateInput: document.getElementById('date-input')
   };
 
   function escapeHtml(str) {
@@ -61,7 +62,7 @@ App.UI = (function () {
 
   let editingId = null;
   
-  function renderPinList(pins, { onSelect, onDelete, onHover }) {
+  function renderPinList(pins, { onSelect, onDelete, onHover, onDateChange }) {
     if (pins.length === 0) {
       el.pinList.innerHTML = `<div class="empty-state">No stops here yet.<br/>Tap the map to add your first one.</div>`;
       return;
@@ -130,6 +131,7 @@ App.UI = (function () {
     el.catBtns.forEach((b) => b.classList.remove('selected'));
     el.overlay.classList.add('open');
     el.nameInput.focus();
+    el.dateInput.value = '';
   }
 
   function closeAddPanel() {
@@ -158,6 +160,7 @@ App.UI = (function () {
       callback({
         name: el.nameInput.value.trim(),
         notes: el.notesInput.value.trim(),
+        date: el.dateInput.value || null,
       });
     });
   }

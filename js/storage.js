@@ -1,3 +1,4 @@
+// js/storage.js
 window.App = window.App || {};
 
 App.Storage = (function () {
@@ -16,7 +17,6 @@ App.Storage = (function () {
       body: JSON.stringify({ ...pin, map_id: mapId }),
     });
 
-    // Check if the server sent an error (like 500)
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Server error');
@@ -30,5 +30,15 @@ App.Storage = (function () {
     return await response.json();
   }
 
-  return { loadPins, savePin, deletePin };
+  async function updatePinDate(id, date) {
+    const response = await fetch(`${API_URL}/pins/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date }),
+    });
+    if (!response.ok) throw new Error('Failed to update date');
+    return await response.json();
+  }
+
+  return { loadPins, savePin, deletePin, updatePinDate };
 })();
