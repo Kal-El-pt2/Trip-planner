@@ -126,6 +126,7 @@ main { flex: 1; display: flex; min-height: 0; }
   line-height: 1.6;
   font-family: 'Shippori Mincho', serif;
 }
+.pin-date { font-size: 12px; opacity: .75; margin-top: 2px; }
 
 /* Updated Ticket Styles */
 .ticket {
