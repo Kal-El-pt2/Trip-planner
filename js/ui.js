@@ -75,6 +75,7 @@ App.UI = (function () {
           <button class="ticket-del" data-id="${p.id}">✕</button>
         </div>
         <div class="ticket-meta">Added by: ${escapeHtml(p.user_name)}</div>
+        ${p.date ? `<div class="pin-date">📅 ${formatPinDate(p.date)}</div>` : ''}
         ${p.notes ? `<div class="ticket-notes">${escapeHtml(p.notes)}</div>` : ''}
       </div>
     `
@@ -198,6 +199,22 @@ App.UI = (function () {
 
   function closeSearchResults() {
     el.searchResults.classList.remove('open');
+  }
+  function formatPinDate(d) {
+    if (!d) return '';
+    const [y, m, day] = d.split('-').map(Number);
+    const date = new Date(y, m - 1, day);          // built from parts: no timezone shift
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diff = Math.round((date - today) / 86400000);
+
+    const text = date.toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });                                             // 17 Oct 2026
+
+    if (diff === 0) return `Today · ${text}`;
+    if (diff === 1) return `Tomorrow · ${text}`;
+    return text;
   }
 
   return {

@@ -32,10 +32,14 @@
 
   function refresh() {
     const allPins = State.getPins();
+    const today = todayStr();
     renderCountryChips(allPins);
-    const filteredPins = State.getFilteredPins().filter(
-    (p) => activeCountry === 'all' || Country.getCountry(p) === activeCountry
-    );
+    const filteredPins = State.getFilteredPins()
+      .filter((p) => activeCountry === 'all' || Country.getCountry(p) === activeCountry)
+      .sort((a, b) =>
+        Country.getCountry(a).localeCompare(Country.getCountry(b)) ||
+        comparePins(a, b, today)
+      );
     
     UI.updateCount(allPins); 
     
@@ -135,6 +139,24 @@
         UI.showStatus('Location unavailable - showing default view');
       },
     });
+  }
+
+  function todayStr() {
+    return new Date().toLocaleDateString('en-CA'); // local date as YYYY-MM-DD
+  }
+
+  // 0 = upcoming (or today), 1 = past, 2 = no date
+  function dateRank(pin, today) {
+    if (!pin.date) return 2;
+    return pin.date >= today ? 0 : 1;
+  }
+
+  function comparePins(a, b, today) {
+    const ra = dateRank(a, today), rb = dateRank(b, today);
+    if (ra !== rb) return ra - rb;
+    if (ra === 0) return a.date.localeCompare(b.date); // soonest first
+    if (ra === 1) return b.date.localeCompare(a.date); // most recent past first
+    return 0;                                          // undated: keep original order
   }
 
   async function init() {

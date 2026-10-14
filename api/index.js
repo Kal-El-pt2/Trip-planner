@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');   // add `types` to your existing import
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -10,6 +10,7 @@ app.use(express.json());
 app.use('/data', express.static(path.join(__dirname, '..', 'data')));
 app.use(express.static(path.join(__dirname, '../')));
 console.log("Checking DB User:", process.env.DB_USER);
+types.setTypeParser(1082, (v) => v);     // 1082 = DATE -> keep as 'YYYY-MM-DD'
 
 const db = new Pool({
   connectionString: process.env.DATABASE_URL,
