@@ -1,13 +1,41 @@
 // js/main.js
 (function () {
-  const { State, MapView, UI, Storage, Search } = window.App;
+  const { State, MapView, UI, Storage, Search, Country } = window.App;
 
   let pendingLatLng = null;
   let selectedCategory = null;
+  let activeCountry = 'all';
+
+  function renderCountryChips(allPins) {
+    const el = document.getElementById('country-chips');
+    const groups = Country.groupByCountry(allPins);
+    const names = Object.keys(groups).sort();
+
+    // Selected country vanished (e.g. its last pin was deleted)
+    if (activeCountry !== 'all' && !groups[activeCountry]) activeCountry = 'all';
+
+    el.textContent = '';
+    if (names.length < 2) return; // no point showing chips for a single country
+
+    const make = (label, value) => {
+      const chip = document.createElement('div');
+      chip.className = 'country-chip' + (activeCountry === value ? ' active' : '');
+      chip.textContent = label;
+      chip.onclick = () => { activeCountry = value; refresh(); };
+      el.appendChild(chip);
+    };
+
+    make(`All (${allPins.length})`, 'all');
+    names.forEach((n) => make(`${n} (${groups[n].length})`, n));
+  }
+
 
   function refresh() {
     const allPins = State.getPins();
-    const filteredPins = State.getFilteredPins();
+    renderCountryChips(allPins);
+    const filteredPins = State.getFilteredPins().filter(
+    (p) => activeCountry === 'all' || Country.getCountry(p) === activeCountry
+    );
     
     UI.updateCount(allPins); 
     
@@ -127,6 +155,12 @@
       State.setPins([]);
     }
     
+    try {
+      await Country.load();
+    } catch (err) {
+      console.error('[App] Could not load countries:', err); // chips just won't show
+    }
+
     UI.onTabChange((category) => {
       State.setActiveFilter(category);
       refresh();

@@ -7,7 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use('/data', express.static(path.join(__dirname, '..', 'data')));
 app.use(express.static(path.join(__dirname, '../')));
 console.log("Checking DB User:", process.env.DB_USER);
 
