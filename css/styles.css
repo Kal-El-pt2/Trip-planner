@@ -298,3 +298,11 @@ main { flex: 1; display: flex; min-height: 0; }
 
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+#country-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+#country-chips:empty { display: none; }
+.country-chip {
+  font-size: 11px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid currentColor; opacity: .6; cursor: pointer; user-select: none;
+}
+.country-chip.active { opacity: 1; font-weight: 600; }

@@ -6,6 +6,7 @@
 <title>Japan Trip Planner</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <link rel="stylesheet" href="css/styles.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗾</text></svg>" />
 </head>
 <body>
 <div id="app">
@@ -28,7 +29,7 @@
         <div class="tab" data-cat="sights">見 SIGHTS</div>
         <div class="tab" data-cat="hotel">宿 STAY</div>
       </div>
-      
+      <div id="country-chips"></div>
       <!-- List of pins -->
       <div id="pin-list"></div>
 
@@ -72,6 +73,7 @@
 <script src="js/mapview.js"></script>
 <script src="js/search.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/country.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
