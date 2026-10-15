@@ -111,6 +111,14 @@ App.UI = (function () {
     el.pinList.querySelectorAll('.pin-date-clear').forEach((btn) => {
       btn.addEventListener('click', () => onDateChange(btn.dataset.id, null));
     });
+
+    el.pinList.querySelectorAll('.ticket-del').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Remove this stop?')) onDelete(btn.dataset.id);
+      });
+    });
+
   }
 
   function onTabChange(callback) {
